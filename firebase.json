@@ -1,11 +1,11 @@
 {
   "hosting": {
-    "public": "public",
+    "public": "out",
     "rewrites": [
       {
         "source": "**",
-        "apphosting": {
-          "backendId": "ai-analyst-evaluator-backend",
+        "run": {
+          "serviceId": "ai-analyst-evaluator-backend",
           "region": "us-central1"
         }
       }

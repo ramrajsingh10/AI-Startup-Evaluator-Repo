@@ -7,6 +7,24 @@ export type User = {
 
 export type Startup = {
   id: string;
+  name: string;
+  founder: string;
+  logo: string;
+  industry: string;
+  founded: string;
+  employees: string;
+  summary: string;
+  businessModel: string;
+  fundingHistory: string;
+  memo: string;
+  scores: {
+    'Team Strength': number;
+    'Market Potential': number;
+    'Financial Viability': number;
+    'Problem Significance': number;
+    'Solution Uniqueness': number;
+  };
+  traction: string;
   company: string;
   website: string;
   sector: "AI/ML" | "HealthTech" | "CleanTech" | "FinTech" | "SaaS";
