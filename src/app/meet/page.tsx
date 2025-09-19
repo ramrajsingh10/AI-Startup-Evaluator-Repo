@@ -1,137 +1,147 @@
 "use client";
-
-import * as React from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import { DashboardLayout } from "@/components/shared/dashboard-layout";
 import { PageHeader } from "@/components/shared/page-header";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { meetings } from "@/lib/mock-data";
-import { formatDate, cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { addDays, format } from "date-fns";
+import * as React from "react";
+import { cn } from "@/lib/utils";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
-export default function MeetPage() {
+function MeetingPageContent() {
   const searchParams = useSearchParams();
-  const mode = searchParams.get("mode") || "1-on-1";
-  const { toast } = useToast();
-  
+  const investorId = searchParams.get('investorId');
   const [date, setDate] = React.useState<Date | undefined>(new Date());
-  const [time, setTime] = React.useState<string | undefined>("10:00");
-  const [meetingType, setMeetingType] = React.useState<"Voice" | "Video">("Video");
+  const { toast } = useToast();
 
-  const handleSchedule = () => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    // Mock submission
     toast({
       title: "Meeting Scheduled!",
-      description: "A calendar invite with a meeting link has been sent.",
+      description: "The investor has been notified of your meeting request.",
     });
-  };
-  
-  const handleAction = (action: string, title: string) => {
-    toast({
-        title: `Meeting ${action}`,
-        description: `The meeting "${title}" has been ${action.toLowerCase()}.`
-    })
   }
-
-  const timeSlots = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"];
 
   return (
     <DashboardLayout>
       <PageHeader
         title="Schedule a Meeting"
-        description={
-          mode === "Agent"
-            ? "Schedule a call with our AI agent to generate your investment memo."
-            : "Schedule a 1-on-1 call with a founder or investor."
-        }
+        description="Arrange a time to connect with an investor."
       />
-      <div className="grid gap-8 md:grid-cols-5">
-        <div className="md:col-span-3">
+      <div className="max-w-2xl mx-auto">
+        <form onSubmit={handleSubmit}>
           <Card>
             <CardHeader>
-              <CardTitle>
-                {mode === "Agent" ? "Schedule with AI Agent" : "Schedule 1-on-1"}
-              </CardTitle>
+              <CardTitle>Meeting Details</CardTitle>
+              <CardDescription>
+                Fill out the form below to schedule a new meeting.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="grid gap-6 md:grid-cols-2">
-                <div>
-                    <Label className="mb-2 block">Select a Date</Label>
-                    <Calendar
+            <CardContent className="space-y-6">
+              <div className="grid gap-2">
+                <Label htmlFor="investor">Investor</Label>
+                <Select defaultValue={investorId || ""}>
+                  <SelectTrigger id="investor">
+                    <SelectValue placeholder="Select an investor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">Investor #1</SelectItem>
+                    <SelectItem value="2">Investor #2</SelectItem>
+                    <SelectItem value="3">Investor #3 (Mock)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="title">Meeting Title</Label>
+                <Input id="title" placeholder="e.g. Introduction & Pitch" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="date">Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !date && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {date ? format(date, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
                         mode="single"
                         selected={date}
                         onSelect={setDate}
-                        className="rounded-md border p-0"
-                    />
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
-                <div className="space-y-4">
-                    <div>
-                        <Label>Select a Time</Label>
-                        <div className="grid grid-cols-2 gap-2 mt-2">
-                            {timeSlots.map(slot => (
-                                <Button 
-                                    key={slot} 
-                                    variant={time === slot ? "default" : "outline"}
-                                    onClick={() => setTime(slot)}
-                                >
-                                    {slot}
-                                </Button>
-                            ))}
-                        </div>
-                    </div>
-                    <div>
-                        <Label>Meeting Type</Label>
-                        <RadioGroup defaultValue="Video" className="mt-2 flex gap-4" onValueChange={(value: "Voice" | "Video") => setMeetingType(value)}>
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="Video" id="r-video" />
-                                <Label htmlFor="r-video">Video Call</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="Voice" id="r-voice" />
-                                <Label htmlFor="r-voice">Voice Call</Label>
-                            </div>
-                        </RadioGroup>
-                    </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="time">Time</Label>
+                  <Select>
+                    <SelectTrigger id="time">
+                      <SelectValue placeholder="Select a time" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="09:00">9:00 AM</SelectItem>
+                      <SelectItem value="10:00">10:00 AM</SelectItem>
+                      <SelectItem value="11:00">11:00 AM</SelectItem>
+                      <SelectItem value="14:00">2:00 PM</SelectItem>
+                      <SelectItem value="15:00">3:00 PM</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="notes">Notes (Optional)</Label>
+                <Textarea id="notes" placeholder="Add any notes for the meeting..." />
+              </div>
             </CardContent>
             <CardFooter>
-              <Button className="w-full md:w-auto" onClick={handleSchedule}>Schedule Meeting</Button>
+              <Button type="submit" className="w-full">
+                Schedule Meeting
+              </Button>
             </CardFooter>
           </Card>
-        </div>
-        <div className="md:col-span-2">
-          <Card>
-            <CardHeader>
-                <CardTitle>Meetings</CardTitle>
-                <CardDescription>Your upcoming and past meetings.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <ul className="space-y-4">
-                    {meetings.map(meeting => (
-                        <li key={meeting.id}>
-                            <div className="flex items-start justify-between">
-                               <div>
-                                 <p className="font-semibold">{meeting.title}</p>
-                                 <p className="text-sm text-muted-foreground">{formatDate(meeting.time, { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
-                               </div>
-                               <Badge variant={meeting.status === 'Upcoming' ? 'default' : 'secondary'} className={cn(meeting.status === 'Upcoming' && 'bg-blue-500/20 text-blue-700 border-blue-500/30')}>{meeting.status}</Badge>
-                            </div>
-                            {meeting.status === 'Upcoming' && (
-                                <div className="mt-2 flex gap-2">
-                                    <Button size="sm" variant="outline" onClick={() => handleAction('Rescheduled', meeting.title)}>Reschedule</Button>
-                                    <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => handleAction('Cancelled', meeting.title)}>Cancel</Button>
-                                </div>
-                            )}
-                        </li>
-                    ))}
-                </ul>
-            </CardContent>
-          </Card>
-        </div>
+        </form>
       </div>
     </DashboardLayout>
   );
+}
+
+
+export default function MeetPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <MeetingPageContent />
+    </Suspense>
+  )
 }
