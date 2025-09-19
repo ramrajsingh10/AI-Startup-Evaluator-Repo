@@ -164,7 +164,7 @@ export default function InvestorPage() {
                     <Card key={startup.id} className="flex flex-col">
                         <CardHeader>
                             <CardTitle className="flex justify-between items-start">
-                                <Link href={`/memo/m1`} className="hover:underline">{startup.company}</Link>
+                                <Link href={`/memo/${startup.id}`} className="hover:underline">{startup.company}</Link>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -172,7 +172,7 @@ export default function InvestorPage() {
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                        <DropdownMenuItem asChild><Link href={`/memo/m1`}><FileText className="mr-2 h-4 w-4"/> View Memo</Link></DropdownMenuItem>
+                                        <DropdownMenuItem asChild><Link href={`/memo/${startup.id}`}><FileText className="mr-2 h-4 w-4"/> View Memo</Link></DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => handleConnect(startup.company)}><MessageSquare className="mr-2 h-4 w-4"/> Connect with Founder</DropdownMenuItem>
                                         <DropdownMenuItem onClick={handleSchedule}><CalendarPlus className="mr-2 h-4 w-4"/> Schedule 1:1</DropdownMenuItem>
                                     </DropdownMenuContent>
@@ -196,7 +196,7 @@ export default function InvestorPage() {
                         </CardContent>
                         <CardFooter>
                            <Button className="w-full" asChild>
-                                <Link href={`/memo/m1`}>View Memo</Link>
+                                <Link href={`/memo/${startup.id}`}>View Memo</Link>
                            </Button>
                         </CardFooter>
                     </Card>

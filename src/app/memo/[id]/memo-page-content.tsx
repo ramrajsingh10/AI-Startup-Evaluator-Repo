@@ -25,6 +25,7 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { Bar, CartesianGrid, XAxis, YAxis, BarChart as ReBarChart, LabelList, Cell } from 'recharts';
+import { users } from '@/lib/mock-data';
 
 const chartConfig = {
   views: {
@@ -64,6 +65,8 @@ export default async function MemoPageContent({ id }: { id: string }) {
   if (!startup) {
     notFound();
   }
+  
+  const founder = users.find(u => u.id === startup.founderId);
 
   const chartData = [
     {
@@ -96,8 +99,8 @@ export default async function MemoPageContent({ id }: { id: string }) {
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
-        title={startup.name}
-        description={`by ${startup.founder}`}
+        title={startup.company}
+        description={`by ${founder?.email || 'Unknown Founder'}`}
       >
         <Button>
           <Eye className="w-4 h-4 mr-2" />
@@ -109,29 +112,29 @@ export default async function MemoPageContent({ id }: { id: string }) {
           <CardHeader className="items-center">
             <Avatar className="w-32 h-32">
               <AvatarImage
-                src={startup.logo}
-                alt={startup.name}
+                src={`https://picsum.photos/seed/${startup.id}/200`}
+                alt={startup.company}
               />
-              <AvatarFallback>{startup.name[0]}</AvatarFallback>
+              <AvatarFallback>{startup.company[0]}</AvatarFallback>
             </Avatar>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-2">
-            <h1 className="text-2xl font-bold">{startup.name}</h1>
-            <p className="text-lg text-gray-500">{startup.founder}</p>
+            <h1 className="text-2xl font-bold">{startup.company}</h1>
+            <p className="text-lg text-gray-500">{founder?.email || 'Unknown Founder'}</p>
             <div className="flex flex-col gap-2 w-full mt-4">
               <div className="w-full">
-                <p className="font-bold">Industry</p>
-                <p>{startup.industry}</p>
+                <p className="font-bold">Sector</p>
+                <p>{startup.sector}</p>
               </div>
               <Separator />
               <div className="w-full">
-                <p className="font-bold">Founded</p>
-                <p>{startup.founded}</p>
+                <p className="font-bold">Stage</p>
+                <p>{startup.stage}</p>
               </div>
               <Separator />
               <div className="w-full">
-                <p className="font-bold">Employees</p>
-                <p>{startup.employees}</p>
+                <p className="font-bold">Website</p>
+                <p>{startup.website}</p>
               </div>
             </div>
           </CardContent>
@@ -142,7 +145,7 @@ export default async function MemoPageContent({ id }: { id: string }) {
               <CardTitle>Summary</CardTitle>
             </CardHeader>
             <CardContent>
-              <p>{startup.summary}</p>
+              <p>{startup.oneLiner}</p>
             </CardContent>
           </Card>
 
@@ -151,16 +154,16 @@ export default async function MemoPageContent({ id }: { id: string }) {
               <CardTitle>Business Model</CardTitle>
             </CardHeader>
             <CardContent>
-              <p>{startup.businessModel}</p>
+              <p>Not available in mock data.</p>
             </CardContent>
           </Card>
 
           <Card className="mt-4">
             <CardHeader>
-              <CardTitle>Funding History</CardTitle>
+              <CardTitle>Traction</CardTitle>
             </CardHeader>
             <CardContent>
-              <p>{startup.fundingHistory}</p>
+              <p>Not available in mock data.</p>
             </CardContent>
           </Card>
         </div>
@@ -170,7 +173,7 @@ export default async function MemoPageContent({ id }: { id: string }) {
           <CardTitle>Investment Memo</CardTitle>
         </CardHeader>
         <CardContent>
-          <p>{startup.memo}</p>
+          <p>This is a mock memo. AI-generated content will be populated here.</p>
         </CardContent>
       </Card>
       <Card>
