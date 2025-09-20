@@ -1,6 +1,6 @@
 # backend_code/routers/memos.py
 from fastapi import APIRouter, Depends, HTTPException, status
-from ..main import db, require_role
+from ..dependencies import db, require_role
 
 router = APIRouter()
 
@@ -8,7 +8,6 @@ router = APIRouter()
 async def get_memo(memo_id: str, current_user: dict = Depends(require_role(["investor", "admin"]))):
     """
     Fetches a specific memo from the Firestore 'memos' collection.
-    Only accessible by users with 'investor' or 'admin' roles.
     """
     try:
         memo_ref = db.collection('memos').document(memo_id)

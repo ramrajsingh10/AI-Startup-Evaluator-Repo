@@ -1,8 +1,8 @@
 # backend_code/routers/startups.py
 from fastapi import APIRouter, Depends, HTTPException, status
-from ..main import db, require_role
 from pydantic import BaseModel
 from typing import Optional
+from ..dependencies import db, require_role
 
 router = APIRouter()
 
@@ -16,10 +16,8 @@ class Startup(BaseModel):
 async def create_startup(startup: Startup, current_user: dict = Depends(require_role(["founder"]))):
     """
     Creates a new startup in the Firestore 'startups' collection.
-    Only accessible by users with the 'founder' role.
     """
     try:
-        # Ensure the founder is submitting their own startup
         if startup.founder_uid != current_user.get("uid"):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -39,7 +37,7 @@ async def create_startup(startup: Startup, current_user: dict = Depends(require_
 @router.get("/founder/dashboard")
 async def get_founder_dashboard(current_user: dict = Depends(require_role(["founder"]))):
     """
-    Fetches dashboard data for the logged-in founder, including their startup.
+    Fetches dashboard data for the logged-in founder.
     """
     try:
         uid = current_user.get("uid")
@@ -51,15 +49,7 @@ async def get_founder_dashboard(current_user: dict = Depends(require_role(["foun
             startup_data = doc.to_dict()
             startup_data['id'] = doc.id
 
-        # Mock data for memos and investor interest
-        memos = []
-        investor_interest = []
-
-        return {
-            "startup": startup_data,
-            "memos": memos,
-            "investor_interest": investor_interest
-        }
+        return { "startup": startup_data, "memos": [], "investor_interest": [] }
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -69,18 +59,14 @@ async def get_founder_dashboard(current_user: dict = Depends(require_role(["foun
 @router.get("/startups/{startup_id}")
 async def get_startup(startup_id: str, current_user: dict = Depends(require_role(["investor", "admin"]))):
     """
-    Fetches a specific startup from the Firestore 'startups' collection.
-    Only accessible by users with 'investor' or 'admin' roles.
+    Fetches a specific startup by its ID.
     """
     try:
         startup_ref = db.collection('startups').document(startup_id)
         startup_doc = startup_ref.get()
 
         if not startup_doc.exists:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Startup not found.",
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Startup not found.")
         
         return {"id": startup_doc.id, **startup_doc.to_dict()}
     except Exception as e:
