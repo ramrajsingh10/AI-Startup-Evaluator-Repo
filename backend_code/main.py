@@ -4,6 +4,7 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from firebase_admin import auth
 from fastapi.middleware.cors import CORSMiddleware
+from .routers import auth as auth_router
 
 
 # Load the service account key and initialize the Firebase Admin SDK
@@ -28,6 +29,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(auth_router.router, prefix="/api/v1/auth")
 
 
 # Dependency to verify the Firebase ID token

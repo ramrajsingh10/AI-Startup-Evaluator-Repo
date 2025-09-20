@@ -1,5 +1,7 @@
 {
-  "apphosting": {
-    "backends": ["backend"]
-  }
+  "apphosting": [
+    {
+      "backendId": "app-hosting-backend"
+    }
+  ]
 }
