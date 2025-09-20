@@ -1,7 +1,7 @@
+"use client";
+
 // This forces the page to be rendered dynamically.
 export const dynamic = 'force-dynamic';
-
-"use client";
 
 import Link from "next/link";
 import * as React from "react";

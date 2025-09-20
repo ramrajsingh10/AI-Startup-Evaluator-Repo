@@ -1,7 +1,8 @@
+"use client";
+
 // This forces the page to be rendered dynamically.
 export const dynamic = 'force-dynamic';
 
-"use client";
 import Link from "next/link";
 import { DashboardLayout } from "@/components/shared/dashboard-layout";
 import { PageHeader } from "@/components/shared/page-header";
