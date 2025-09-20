@@ -1,14 +1,5 @@
 {
-  "hosting": {
-    "public": "out",
-    "rewrites": [
-      {
-        "source": "**",
-        "run": {
-          "serviceId": "ai-analyst-evaluator-backend",
-          "region": "us-central1"
-        }
-      }
-    ]
+  "apphosting": {
+    "backends": ["backend"]
   }
 }

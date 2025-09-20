@@ -24,11 +24,7 @@ export type Startup = {
     'Problem Significance': number;
     'Solution Uniqueness': number;
   };
-  traction: {
-    mrr: number;
-    dau: number;
-    mau: number;
-  };
+  traction: string; // Reverted back to string to match mock data
   company: string;
   website: string;
   sector: "AI/ML" | "HealthTech" | "CleanTech" | "FinTech" | "SaaS";
