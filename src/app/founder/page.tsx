@@ -14,20 +14,78 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { startups, memos, connections, meetings } from "@/lib/mock-data";
 import { cn, formatDate } from "@/lib/utils";
 import { ArrowRight, FileText, UserCheck, Users, Calendar, Edit } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import React from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { Skeleton } from "@/components/ui/skeleton";
 
+interface Startup {
+  id: string;
+  name: string;
+  description: string;
+  website: string;
+  status?: "Pending" | "Approved" | "Rejected";
+  submittedAt?: string; // Assuming ISO string date
+}
 
-function MyStartupCard() {
-    const myStartup = startups[0]; // Assume this is the founder's startup
-    if (!myStartup) return null;
+interface DashboardData {
+  startup: Startup | null;
+  memos: any[];
+  investor_interest: any[];
+}
+
+function MyStartupCard({ startup, isLoading }: { startup: Startup | null, isLoading: boolean }) {
+    if (isLoading) {
+      return (
+        <Card>
+            <CardHeader>
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-1/2 mt-2" />
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="flex justify-between items-center">
+                    <Skeleton className="h-4 w-1/4" />
+                    <Skeleton className="h-6 w-1/4" />
+                </div>
+                 <div className="flex justify-between items-center">
+                    <Skeleton className="h-4 w-1/4" />
+                    <Skeleton className="h-4 w-1/3" />
+                </div>
+            </CardContent>
+            <CardFooter>
+                 <Skeleton className="h-10 w-full" />
+            </CardFooter>
+        </Card>
+      );
+    }
+    
+    if (!startup) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle>My Startup</CardTitle>
+                    <CardDescription>You have not submitted a startup yet.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-sm text-center text-muted-foreground py-4">
+                        Submit your startup to get discovered by investors.
+                    </p>
+                </CardContent>
+                <CardFooter>
+                    <Button className="w-full" asChild>
+                        <Link href="/founder/submit">Make First Submission</Link>
+                    </Button>
+                </CardFooter>
+            </Card>
+        );
+    }
+    
     return (
         <Card>
             <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                    <span>My Startup: {myStartup.company}</span>
+                    <span>{startup.name}</span>
                     <Link href="/founder/submit">
                         <Button variant="ghost" size="icon"><Edit className="h-4 w-4" /></Button>
                     </Link>
@@ -37,13 +95,13 @@ function MyStartupCard() {
             <CardContent className="space-y-2">
                 <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Status</span>
-                    <Badge variant={myStartup.status === 'Approved' ? "default" : 'secondary'} className={cn(myStartup.status === 'Approved' ? 'bg-green-500/20 text-green-700 border-green-500/30 hover:bg-green-500/30' : 'bg-yellow-500/20 text-yellow-700 border-yellow-500/30 hover:bg-yellow-500/30')}>
-                        {myStartup.status}
+                     <Badge variant={startup.status === 'Approved' ? "default" : 'secondary'} className={cn(startup.status === 'Approved' ? 'bg-green-500/20 text-green-700 border-green-500/30 hover:bg-green-500/30' : 'bg-yellow-500/20 text-yellow-700 border-yellow-500/30 hover:bg-yellow-500/30')}>
+                        {startup.status || 'Pending'}
                     </Badge>
                 </div>
                 <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Submitted</span>
-                    <span className="text-sm font-medium">{formatDate(myStartup.submittedAt)}</span>
+                    <span className="text-sm font-medium">{startup.submittedAt ? formatDate(new Date(startup.submittedAt)) : 'N/A'}</span>
                 </div>
             </CardContent>
             <CardFooter>
@@ -57,8 +115,7 @@ function MyStartupCard() {
     );
 }
 
-function MemosCard() {
-    const myMemos = memos.filter(m => startups.some(s => s.id === m.startupId && s.founderId === "3"));
+function MemosCard({ memos }: { memos: any[] }) {
     return (
         <Card>
             <CardHeader>
@@ -66,22 +123,9 @@ function MemosCard() {
                 <CardDescription>AI-generated investment memos on your startup.</CardDescription>
             </CardHeader>
             <CardContent>
-                {myMemos.length > 0 ? (
+                {memos.length > 0 ? (
                     <ul className="space-y-4">
-                        {myMemos.map(memo => (
-                            <li key={memo.id}>
-                                <Link href={`/memo/${memo.id}`} className="block hover:bg-accent/50 p-3 rounded-md transition-colors">
-                                    <div className="flex justify-between items-center">
-                                        <p className="font-semibold">{memo.type}</p>
-                                        <ArrowRight className="h-4 w-4 text-muted-foreground"/>
-                                    </div>
-                                    <div className="flex items-center gap-2 mt-2">
-                                        <Progress value={memo.status === 'Completed' ? 100 : 50} className="h-2" />
-                                        <span className="text-xs text-muted-foreground">{memo.status}</span>
-                                    </div>
-                                </Link>
-                            </li>
-                        ))}
+                        {/* Memos list would be rendered here */}
                     </ul>
                 ) : (
                     <p className="text-sm text-muted-foreground text-center py-4">No memos generated yet.</p>
@@ -91,8 +135,7 @@ function MemosCard() {
     );
 }
 
-function InvestorInterestCard() {
-     const myConnections = connections.filter(c => c.founderId === '3');
+function InvestorInterestCard({ interests }: { interests: any[] }) {
     return (
         <Card>
             <CardHeader>
@@ -100,16 +143,9 @@ function InvestorInterestCard() {
                 <CardDescription>Investors who have shown interest in your startup.</CardDescription>
             </CardHeader>
             <CardContent>
-                {myConnections.length > 0 ? (
-                    <ul className="space-y-3">
-                       {myConnections.map(c => (
-                            <li key={c.id} className="flex items-center justify-between">
-                                <p className="font-medium">Investor #{c.investorId}</p>
-                                <Badge variant={c.status === 'accepted' ? 'default' : c.status === 'requested' ? 'secondary' : 'destructive'} className={cn(c.status === 'accepted' ? 'bg-green-500/20 text-green-700 border-green-500/30' : c.status === 'requested' ? 'bg-yellow-500/20 text-yellow-700 border-yellow-500/30' : '')}>
-                                    {c.status}
-                                </Badge>
-                            </li>
-                       ))}
+                {interests.length > 0 ? (
+                     <ul className="space-y-3">
+                        {/* Investor interest list would be rendered here */}
                     </ul>
                 ) : (
                     <p className="text-sm text-muted-foreground text-center py-4">No investor interest yet.</p>
@@ -120,13 +156,6 @@ function InvestorInterestCard() {
 }
 
 function ConnectionsCard() {
-    const acceptedConnections = connections.filter(c => c.founderId === '3' && c.status === 'accepted');
-
-    const handleCancel = () => {
-        // Mock action
-        alert("Connection cancelled (mock).");
-    }
-
     return (
         <Card>
             <CardHeader>
@@ -134,25 +163,13 @@ function ConnectionsCard() {
                 <CardDescription>Your active investor connections.</CardDescription>
             </CardHeader>
             <CardContent>
-                 {acceptedConnections.length > 0 ? (
-                    <ul className="space-y-3">
-                       {acceptedConnections.map(c => (
-                            <li key={c.id} className="flex items-center justify-between">
-                                <p className="font-medium">Investor #{c.investorId}</p>
-                                <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={handleCancel}>Cancel</Button>
-                            </li>
-                       ))}
-                    </ul>
-                ) : (
-                    <p className="text-sm text-muted-foreground text-center py-4">No active connections.</p>
-                )}
+                 <p className="text-sm text-muted-foreground text-center py-4">No active connections.</p>
             </CardContent>
         </Card>
     );
 }
 
 function MeetingsCard() {
-    const myMeetings = meetings.filter(m => m.participants.includes("founder@startupverse.com"));
     return (
         <Card>
             <CardHeader>
@@ -160,29 +177,7 @@ function MeetingsCard() {
                 <CardDescription>Your upcoming and past meetings.</CardDescription>
             </CardHeader>
             <CardContent>
-                 {myMeetings.length > 0 ? (
-                    <ul className="space-y-3">
-                       {myMeetings.map(m => (
-                           <li key={m.id}>
-                               <div className="flex items-start justify-between">
-                                   <div>
-                                    <p className="font-semibold">{m.title}</p>
-                                    <p className="text-sm text-muted-foreground">{formatDate(m.time, {month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric' })}</p>
-                                   </div>
-                                    <Badge variant={m.status === 'Upcoming' ? 'default' : 'secondary'} className={cn(m.status === 'Upcoming' ? 'bg-blue-500/20 text-blue-700 border-blue-500/30' : '')}>{m.status}</Badge>
-                               </div>
-                               {m.status === 'Upcoming' && (
-                                   <div className="flex gap-2 mt-2">
-                                       <Button size="sm" variant="outline">Reschedule</Button>
-                                       <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive">Cancel</Button>
-                                   </div>
-                               )}
-                           </li>
-                       ))}
-                    </ul>
-                ) : (
-                    <p className="text-sm text-muted-foreground text-center py-4">No meetings scheduled.</p>
-                )}
+                <p className="text-sm text-muted-foreground text-center py-4">No meetings scheduled.</p>
             </CardContent>
             <CardFooter>
                 <Button className="w-full" variant="outline" asChild>
@@ -194,6 +189,42 @@ function MeetingsCard() {
 }
 
 export default function FounderPage() {
+    const { user } = useAuth();
+    const [dashboardData, setDashboardData] = React.useState<DashboardData | null>(null);
+    const [loading, setLoading] = React.useState(true);
+    const [error, setError] = React.useState<string | null>(null);
+
+    React.useEffect(() => {
+        const fetchDashboardData = async () => {
+            if (!user) return;
+
+            try {
+                setLoading(true);
+                const token = await user.getIdToken();
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/founder/dashboard`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch dashboard data.");
+                }
+
+                const data: DashboardData = await response.json();
+                setDashboardData(data);
+                setError(null);
+            } catch (err) {
+                setError("An error occurred while fetching your dashboard.");
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDashboardData();
+    }, [user]);
+
   return (
     <DashboardLayout>
       <PageHeader
@@ -204,14 +235,15 @@ export default function FounderPage() {
             <Link href="/founder/submit">New Submission</Link>
         </Button>
       </PageHeader>
+       {error && <div className="text-center py-12 text-destructive">{error}</div>}
       <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
         <div className="xl:col-span-1 space-y-6">
-            <MyStartupCard />
-            <MemosCard />
+            <MyStartupCard startup={dashboardData?.startup || null} isLoading={loading} />
+            <MemosCard memos={dashboardData?.memos || []} />
         </div>
         <div className="xl:col-span-2 space-y-6">
             <div className="grid gap-6 md:grid-cols-2">
-                <InvestorInterestCard />
+                <InvestorInterestCard interests={dashboardData?.investor_interest || []} />
                 <ConnectionsCard />
             </div>
             <MeetingsCard />

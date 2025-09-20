@@ -10,8 +10,12 @@ def seed_firestore_and_auth():
     # Initialize Firebase Admin SDK
     try:
         if not firebase_admin._apps:
+            # Explicitly set the project ID to ensure we connect to the correct project.
+            project_id = "ai-startup-evaluator-472309"
             cred = credentials.ApplicationDefault()
-            firebase_admin.initialize_app(cred)
+            firebase_admin.initialize_app(cred, {
+                'projectId': project_id,
+            })
         
         db = firestore.client()
         print("Successfully connected to Firestore.")

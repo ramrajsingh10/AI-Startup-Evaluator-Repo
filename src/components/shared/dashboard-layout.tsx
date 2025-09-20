@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 import {
   SidebarProvider,
@@ -37,21 +37,72 @@ import {
   Settings,
   Shield,
   Search,
+  LogOut
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/hooks/use-auth";
+import { auth } from "@/lib/firebase";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const navItems = [
-  { href: "/admin", icon: Shield, label: "Admin" },
-  { href: "/investor", icon: Search, label: "Investor" },
-  { href: "/founder", icon: Rocket, label: "Founder" },
-  { href: "/founder/submit", icon: FileText, label: "Submit" },
-  { href: "/meet", icon: Calendar, label: "Meetings" },
+  { href: "/admin", icon: Shield, label: "Admin", roles: ["admin"] },
+  { href: "/investor", icon: Search, label: "Investor", roles: ["investor", "admin"] },
+  { href: "/founder", icon: Rocket, label: "Founder", roles: ["founder", "admin"] },
+  { href: "/founder/submit", icon: FileText, label: "Submit", roles: ["founder", "admin"] },
+  { href: "/meet", icon: Calendar, label: "Meetings", roles: ["investor", "founder", "admin"] },
 ];
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isMobile = useIsMobile();
   const [open, setOpen] = React.useState(isMobile ? false : true);
+  const { user, role, loading } = useAuth();
+  const router = useRouter();
+
+  React.useEffect(() => {
+    if (!loading && !user) {
+      router.push("/login");
+    }
+
+    if (user && role) {
+      const currentRoute = navItems.find((item) => pathname.startsWith(item.href));
+      if (currentRoute && !currentRoute.roles.includes(role)) {
+        // Redirect to a default page based on role if unauthorized
+        switch (role) {
+          case 'admin':
+            router.push('/admin');
+            break;
+          case 'investor':
+            router.push('/investor');
+            break;
+          case 'founder':
+            router.push('/founder');
+            break;
+          default:
+            router.push('/login');
+            break;
+        }
+      }
+    }
+  }, [user, role, loading, pathname, router]);
+
+  const handleLogout = async () => {
+    await auth.signOut();
+    router.push("/login");
+  };
+  
+  const accessibleNavItems = navItems.filter((item) => role && item.roles.includes(role));
+
+  if (loading || !user) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <AppLogo className="size-12 text-primary" />
+          <p className="text-muted-foreground">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <SidebarProvider open={open} onOpenChange={setOpen}>
@@ -64,7 +115,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
-            {navItems.map((item) => (
+            {accessibleNavItems.map((item) => (
               <SidebarMenuItem key={item.href}>
                 <Link href={item.href} legacyBehavior passHref>
                   <SidebarMenuButton
@@ -101,21 +152,22 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full">
                 <Avatar>
-                  <AvatarImage src="https://picsum.photos/seed/avatar/32/32" />
-                  <AvatarFallback>U</AvatarFallback>
+                  <AvatarImage src={user?.photoURL || "https://picsum.photos/seed/avatar/32/32"} />
+                  <AvatarFallback>{user?.email?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
                 </Avatar>
                 <span className="sr-only">Toggle user menu</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuLabel>{user?.email}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem>Settings</DropdownMenuItem>
               <DropdownMenuItem>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <Link href="/login">
-                <DropdownMenuItem>Logout</DropdownMenuItem>
-              </Link>
+              <DropdownMenuItem onClick={handleLogout} className="text-red-500">
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Logout</span>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </header>

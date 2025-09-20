@@ -29,15 +29,17 @@ import { DashboardLayout } from "@/components/shared/dashboard-layout";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { UploadCloud } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { auth } from "@/lib/firebase";
 
 const formSchema = z.object({
-  company: z.string().min(2, {
+  name: z.string().min(2, {
     message: "Company name must be at least 2 characters.",
   }),
   website: z.string().url({ message: "Please enter a valid URL." }),
   sector: z.enum(["AI/ML", "HealthTech", "CleanTech", "FinTech", "SaaS"]),
   stage: z.enum(["Pre-Seed", "Seed", "Series A", "Series B", "Growth"]),
-  oneLiner: z
+  description: z
     .string()
     .min(10, { message: "Must be at least 10 characters." })
     .max(160, { message: "Must not be longer than 160 characters." }),
@@ -48,23 +50,58 @@ const formSchema = z.object({
 export default function SubmissionPage() {
   const { toast } = useToast();
   const router = useRouter();
+  const { user } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      company: "",
+      name: "",
       website: "",
-      oneLiner: "",
+      description: "",
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log("Mock submission:", values);
-    toast({
-      title: "Submission Successful!",
-      description: "Your startup profile has been submitted for review.",
-    });
-    // Here you would create local "submission" and "memo in progress" items
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!user) {
+      toast({
+        title: "Authentication Error",
+        description: "You must be logged in to submit a startup.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/startups`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          ...values,
+          founder_uid: user.uid,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to submit startup.");
+      }
+
+      toast({
+        title: "Submission Successful!",
+        description: "Your startup profile has been submitted for review.",
+      });
+      router.push("/founder");
+    } catch (error) {
+      console.error("Submission error:", error);
+      toast({
+        title: "Submission Failed",
+        description: "An error occurred while submitting your startup. Please try again.",
+        variant: "destructive",
+      });
+    }
   }
   
   function onSaveDraft() {
@@ -92,7 +129,7 @@ export default function SubmissionPage() {
               <div className="grid md:grid-cols-2 gap-8">
                 <FormField
                   control={form.control}
-                  name="company"
+                  name="name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Company Name</FormLabel>
@@ -177,7 +214,7 @@ export default function SubmissionPage() {
 
               <FormField
                 control={form.control}
-                name="oneLiner"
+                name="description"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>One-Liner</FormLabel>

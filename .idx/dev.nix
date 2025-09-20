@@ -2,45 +2,49 @@
 # see: https://firebase.google.com/docs/studio/customize-workspace
 { pkgs, ... }: {
   # Which nixpkgs channel to use.
-  channel = "stable-23.11";
-
+  channel = "stable-24.11"; # or "unstable"
   # Use https://search.nixos.org/packages to find packages
   packages = [
     pkgs.nodejs_20
     pkgs.zulu
-    # Add Python with the specific packages required by apphosting.yaml
-    (pkgs.python311.withPackages (ps: [
-      ps.fastapi
-      ps.uvicorn
-      ps.python_dotenv
-      ps.google_cloud_firestore
-      ps.firebase_admin
-      ps.gunicorn
-    ]))
+    pkgs.python311
+    # Add the full Google Cloud SDK for gcloud commands
+    pkgs.google-cloud-sdk 
   ];
-
   # Sets environment variables in the workspace
   env = {};
-
+  # This adds a file watcher to startup the firebase emulators. The emulators will only start if
+  # a firebase.json file is written into the user's directory
+  services.firebase.emulators = {
+    # Disabling because we are using prod backends right now
+    detect = false;
+    # Update projectId to match the actual Firebase project
+    projectId = "ai-startup-evaluator-472309"; 
+    services = ["auth" "firestore"];
+  };
   idx = {
-    # Add a web preview configuration
-    previews = {
-      enable = true;
-      previews = [
-        {
-          id = "web";
-          manager = "web";
-          # Use the dev script from your package.json
-          command = [ "bash" "-lc" "npm run dev" ];
-          env = { };
-        }
-      ];
-    };
-
-    # The list of extensions to recommend VS Code users.
+    # Search for the extensions you want on https://open-vsx.org/ and use "publisher.id"
     extensions = [
+      "vscodevim.vim"
       "ms-python.python"
       "ms-python.debugpy"
     ];
+    workspace = {
+      onCreate = {
+        default.openFiles = [
+          "src/app/page.tsx"
+        ];
+      };
+    };
+    # Enable previews and customize configuration
+    previews = {
+      enable = true;
+      previews = {
+        web = {
+          command = ["npm" "run" "dev" "--" "--port" "$PORT" "--hostname" "0.0.0.0"];
+          manager = "web";
+        };
+      };
+    };
   };
 }
