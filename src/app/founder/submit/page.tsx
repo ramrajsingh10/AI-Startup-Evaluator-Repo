@@ -1,5 +1,8 @@
 "use client";
 
+// This forces the page to be rendered dynamically.
+export const dynamic = 'force-dynamic';
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
