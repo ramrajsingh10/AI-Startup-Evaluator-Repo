@@ -1,7 +1,8 @@
 # Environments
 .env*
-.venv
 serviceAccountKey.json
+serviceAccountKey.json.json
+.venv
 
 # Python
 __pycache__/
