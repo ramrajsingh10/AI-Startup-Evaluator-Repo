@@ -31,11 +31,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { startups } from "@/lib/mock-data";
 import { ListFilter, MoreVertical, Search, MessageSquare, CalendarPlus, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import apiClient from "@/lib/api-client";
+import { Startup } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const RiskBadge = ({
   level,
@@ -57,7 +59,37 @@ const RiskBadge = ({
   );
 };
 
+const StartupCardSkeleton = () => (
+    <Card className="flex flex-col">
+        <CardHeader>
+            <Skeleton className="h-6 w-3/4" />
+            <Skeleton className="h-4 w-full mt-2" />
+        </CardHeader>
+        <CardContent className="flex-grow space-y-4">
+            <div className="flex gap-2">
+                <Skeleton className="h-5 w-20" />
+                <Skeleton className="h-5 w-24" />
+            </div>
+            <div>
+                <Skeleton className="h-4 w-1/3 mb-2" />
+                <div className="flex gap-4">
+                    <Skeleton className="h-5 w-20" />
+                    <Skeleton className="h-5 w-20" />
+                    <Skeleton className="h-5 w-20" />
+                </div>
+            </div>
+        </CardContent>
+        <CardFooter>
+            <Skeleton className="h-10 w-full" />
+        </CardFooter>
+    </Card>
+)
+
 export default function InvestorPage() {
+  const [startups, setStartups] = React.useState<Startup[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+
   const [sectorFilter, setSectorFilter] = React.useState("all");
   const [stageFilter, setStageFilter] = React.useState("all");
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -65,6 +97,31 @@ export default function InvestorPage() {
   const { toast } = useToast();
   const router = useRouter();
 
+  React.useEffect(() => {
+    const fetchStartups = async () => {
+      try {
+        setIsLoading(true);
+        const data = await apiClient.get("/api/startups");
+        // Convert Firestore timestamps to Date objects
+        const formattedData = data.map((s: any) => ({
+            ...s,
+            submittedAt: s.submittedAt ? new Date(s.submittedAt._seconds * 1000) : new Date(),
+        }));
+        setStartups(formattedData);
+        setError(null);
+      } catch (err) {
+        setError("Failed to fetch startups. Please try again later.");
+        toast({
+            title: "Error",
+            description: "Could not fetch startup data.",
+            variant: "destructive"
+        })
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchStartups();
+  }, [toast]);
 
   const approvedStartups = startups.filter((s) => s.status === "Approved");
 
@@ -73,12 +130,11 @@ export default function InvestorPage() {
     .filter((s) => stageFilter === "all" || s.stage === stageFilter)
     .filter((s) => s.company.toLowerCase().includes(searchTerm.toLowerCase()))
     .sort((a, b) => {
-        if (sort === 'recent') {
+        if (sort === 'recent' && a.submittedAt && b.submittedAt) {
             return b.submittedAt.getTime() - a.submittedAt.getTime();
         }
-        // Mock sorting for traction
         if (sort === 'traction') {
-            return a.id > b.id ? -1 : 1;
+            return (b.traction?.mrr || 0) - (a.traction?.mrr || 0);
         }
         return 0;
     });
@@ -151,7 +207,7 @@ export default function InvestorPage() {
                         Recent
                         </DropdownMenuCheckboxItem>
                         <DropdownMenuCheckboxItem checked={sort === 'traction'} onSelect={() => setSort('traction')}>
-                        Traction (Mock)
+                        Traction
                         </DropdownMenuCheckboxItem>
                     </DropdownMenuContent>
                     </DropdownMenu>
@@ -160,48 +216,55 @@ export default function InvestorPage() {
         </CardHeader>
         <CardContent>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {filteredStartups.map(startup => (
-                    <Card key={startup.id} className="flex flex-col">
-                        <CardHeader>
-                            <CardTitle className="flex justify-between items-start">
-                                <Link href={`/memo/${startup.id}`} className="hover:underline">{startup.company}</Link>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                                            <MoreVertical className="h-4 w-4"/>
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuItem asChild><Link href={`/memo/${startup.id}`}><FileText className="mr-2 h-4 w-4"/> View Memo</Link></DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleConnect(startup.company)}><MessageSquare className="mr-2 h-4 w-4"/> Connect with Founder</DropdownMenuItem>
-                                        <DropdownMenuItem onClick={handleSchedule}><CalendarPlus className="mr-2 h-4 w-4"/> Schedule 1:1</DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </CardTitle>
-                            <CardDescription>{startup.oneLiner}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="flex-grow space-y-4">
-                            <div className="flex gap-2">
-                               <Badge>{startup.sector}</Badge>
-                               <Badge variant="secondary">{startup.stage}</Badge>
-                            </div>
-                            <div>
-                                <h4 className="text-sm font-semibold mb-2">Risk Heatmap</h4>
-                                <div className="flex gap-4 text-sm">
-                                    <div className="flex items-center gap-2">Market <RiskBadge level={startup.risk.market} /></div>
-                                    <div className="flex items-center gap-2">Tech <RiskBadge level={startup.risk.tech} /></div>
-                                    <div className="flex items-center gap-2">Team <RiskBadge level={startup.risk.team} /></div>
+                {isLoading ? (
+                    Array.from({ length: 6 }).map((_, index) => <StartupCardSkeleton key={index} />)
+                ) : error ? (
+                    <div className="col-span-full text-center py-12 text-destructive">
+                        {error}
+                    </div>
+                ) : filteredStartups.length > 0 ? (
+                    filteredStartups.map(startup => (
+                        <Card key={startup.id} className="flex flex-col">
+                            <CardHeader>
+                                <CardTitle className="flex justify-between items-start">
+                                    <Link href={`/memo/${startup.id}`} className="hover:underline">{startup.company}</Link>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                <MoreVertical className="h-4 w-4"/>
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem asChild><Link href={`/memo/${startup.id}`}><FileText className="mr-2 h-4 w-4"/> View Memo</Link></DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => handleConnect(startup.company)}><MessageSquare className="mr-2 h-4 w-4"/> Connect with Founder</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={handleSchedule}><CalendarPlus className="mr-2 h-4 w-4"/> Schedule 1:1</DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </CardTitle>
+                                <CardDescription>{startup.oneLiner}</CardDescription>
+                            </CardHeader>
+                            <CardContent className="flex-grow space-y-4">
+                                <div className="flex gap-2">
+                                   <Badge>{startup.sector}</Badge>
+                                   <Badge variant="secondary">{startup.stage}</Badge>
                                 </div>
-                            </div>
-                        </CardContent>
-                        <CardFooter>
-                           <Button className="w-full" asChild>
-                                <Link href={`/memo/${startup.id}`}>View Memo</Link>
-                           </Button>
-                        </CardFooter>
-                    </Card>
-                ))}
-                {filteredStartups.length === 0 && (
+                                <div>
+                                    <h4 className="text-sm font-semibold mb-2">Risk Heatmap</h4>
+                                    <div className="flex gap-4 text-sm">
+                                        <div className="flex items-center gap-2">Market <RiskBadge level={startup.risk.market} /></div>
+                                        <div className="flex items-center gap-2">Tech <RiskBadge level={startup.risk.tech} /></div>
+                                        <div className="flex items-center gap-2">Team <RiskBadge level={startup.risk.team} /></div>
+                                    </div>
+                                </div>
+                            </CardContent>
+                            <CardFooter>
+                               <Button className="w-full" asChild>
+                                    <Link href={`/memo/${startup.id}`}>View Memo</Link>
+                               </Button>
+                            </CardFooter>
+                        </Card>
+                    ))
+                ) : (
                     <div className="col-span-full text-center py-12 text-muted-foreground">
                         No startups match your criteria.
                     </div>

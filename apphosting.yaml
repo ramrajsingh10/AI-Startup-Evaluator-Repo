@@ -1,5 +1,37 @@
-# Settings to manage and configure a Firebase App Hosting backend.
+# Settings for a Firebase App Hosting backend.
 # https://firebase.google.com/docs/app-hosting/configure
 
-runConfig:
-  minInstances: 1
+# Specifies the version of the App Hosting manifest.
+version: 1
+
+# Defines the services that make up your application.
+services:
+  # The frontend service, our Next.js application.
+  - id: frontend
+    # Specifies the location of the Next.js application.
+    source: .
+    # The 'run' section specifies the command to start the server.
+    run: npm run start
+    # Environment variables available to the frontend service.
+    env:
+      # The URL where the backend is served. This is automatically populated by App Hosting.
+      NEXT_PUBLIC_API_URL: https://backend-u4x53z4a-uc.a.run.app
+
+  # The backend service, our Python/FastAPI application.
+  - id: backend
+    # Specifies the location of the backend application code.
+    source: backend
+    # Environment configuration for the backend service.
+    env: {}
+
+# Defines how incoming requests are routed to your services.
+routing:
+  # When a request comes in, these rules are processed in order.
+  rules:
+    # This rule directs all requests starting with '/api/' to the backend service.
+    - path: /api/.*
+      service: backend
+
+    # This is the default rule. It directs all other requests to the frontend service.
+    - path: /.*
+      service: frontend

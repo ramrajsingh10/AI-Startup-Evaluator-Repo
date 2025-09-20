@@ -24,7 +24,11 @@ export type Startup = {
     'Problem Significance': number;
     'Solution Uniqueness': number;
   };
-  traction: string;
+  traction: {
+    mrr: number;
+    dau: number;
+    mau: number;
+  };
   company: string;
   website: string;
   sector: "AI/ML" | "HealthTech" | "CleanTech" | "FinTech" | "SaaS";
