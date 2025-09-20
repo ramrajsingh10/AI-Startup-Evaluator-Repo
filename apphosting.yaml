@@ -10,8 +10,8 @@ services:
   - id: frontend
     # Specifies the location of the Next.js application.
     source: .
-    # The 'run' section specifies the command to start the server.
-    run: npm run build && npm run start
+    # The 'run' command specifies how to start the server. The build is handled automatically.
+    run: npm run start
     # Environment variables needed for the build and runtime of the frontend.
     env:
       - variable: NEXT_PUBLIC_FIREBASE_API_KEY
