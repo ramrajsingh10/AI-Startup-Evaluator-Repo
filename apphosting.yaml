@@ -15,25 +15,25 @@ services:
     # Environment variables needed for the build and runtime of the frontend.
     env:
       - variable: NEXT_PUBLIC_FIREBASE_API_KEY
-        value: "AIzaSyDYssyhTe4mi4LqTLsRan5ynea2We9h7Oo"
+        secret: "NEXT_PUBLIC_FIREBASE_API_KEY"
         availability: [BUILD, RUNTIME]
       - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
-        value: "ai-startup-evaluator-472309.firebaseapp.com"
+        secret: "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN"
         availability: [BUILD, RUNTIME]
       - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
-        value: "ai-startup-evaluator-472309"
+        secret: "NEXT_PUBLIC_FIREBASE_PROJECT_ID"
         availability: [BUILD, RUNTIME]
       - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-        value: "ai-startup-evaluator-472309.firebasestorage.app"
+        secret: "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET"
         availability: [BUILD, RUNTIME]
       - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
-        value: "106488605175"
+        secret: "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID"
         availability: [BUILD, RUNTIME]
       - variable: NEXT_PUBLIC_FIREBASE_APP_ID
-        value: "1:106488605175:web:21a11c165d5f536798e6f2"
+        secret: "NEXT_PUBLIC_FIREBASE_APP_ID"
         availability: [BUILD, RUNTIME]
       - variable: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
-        value: "G-RF1ETWRCSH"
+        secret: "NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID"
         availability: [BUILD, RUNTIME]
       - variable: NEXT_PUBLIC_API_URL
         # In the deployed environment, the API is available at /api
