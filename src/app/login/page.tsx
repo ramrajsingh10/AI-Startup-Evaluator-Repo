@@ -1,5 +1,8 @@
 "use client";
 
+// This forces the page to be rendered dynamically.
+export const dynamic = 'force-dynamic';
+
 import Link from "next/link";
 import { AppLogo } from "@/components/icons";
 import { Button } from "@/components/ui/button";

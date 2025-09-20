@@ -1,4 +1,8 @@
 "use client";
+
+// This forces the page to be rendered dynamically.
+export const dynamic = 'force-dynamic';
+
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { DashboardLayout } from "@/components/shared/dashboard-layout";

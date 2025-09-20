@@ -1,5 +1,8 @@
 'use client';
 
+// This forces the page to be rendered dynamically.
+export const dynamic = 'force-dynamic';
+
 import { DashboardLayout } from '@/components/shared/dashboard-layout';
 import { PageHeader } from '@/components/shared/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
