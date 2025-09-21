@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { AppLogo, HomeIcon, ArrowLeftIcon } from "@/components/icons";
+import { AppLogo, HomeIcon, ArrowLeftIcon, ShieldCheck, Rocket, Briefcase } from "@/components/icons"; // Import from local icons
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,7 +12,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Shield, Rocket, Search } from "lucide-react";
+// Removed RequestAccessModal import as it will no longer be used directly here
+// Removed lucide-react imports
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth"; // Import useAuth hook
@@ -36,12 +37,20 @@ export default function LoginClient() {
       } else {
         // User is logged in but has no specific role or pending status
         // This case should ideally not happen if roles are assigned, but as a fallback
-        router.push("/");
+        // This might be hit if a user logs in but their Firestore doc doesn't exist or has no role/status
+        console.log("User logged in but no specific role found or status not active.");
+        toast({
+          title: "Access Pending",
+          description: "Your account is not active. Please wait for admin approval.",
+          variant: "destructive",
+        });
+        // Optionally, sign out the user if their status isn't active to prevent partial login state
+        // auth.signOut(); 
       }
     } else if (!loading && !user) {
       // User is not logged in, remain on login page
     }
-  }, [user, loading, role, router]);
+  }, [user, loading, role, router, toast]);
 
   const handleGoogleSignIn = async () => {
     try {
@@ -65,6 +74,7 @@ export default function LoginClient() {
           errorMessage = error.message;
         }
       } else if (error instanceof Error) {
+        // This will catch errors re-thrown from the backend fetch, including 403 messages
         errorMessage = error.message;
       }
       toast({
@@ -186,7 +196,7 @@ export default function LoginClient() {
           <Card className="bg-background/60">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Shield className="text-primary" /> Admin
+                <ShieldCheck className="text-primary" /> Admin {/* Replaced Shield */}
               </CardTitle>
               <CardDescription>
                 Manage the ecosystem. Control user access, review startup
@@ -197,7 +207,7 @@ export default function LoginClient() {
           <Card className="bg-background/60">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Search className="text-primary" /> Investor
+                <Briefcase className="text-primary" /> Investor {/* Replaced Search */}
               </CardTitle>
               <CardDescription>
                 Discover opportunities. Browse curated startups, analyze
@@ -208,7 +218,7 @@ export default function LoginClient() {
           <Card className="bg-background/60">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Rocket className="text-primary" /> Founder
+                <Rocket className="text-primary" /> Founder {/* Replaced Rocket */}
               </CardTitle>
               <CardDescription>
                 Launch your vision. Submit your startup, schedule meetings with
