@@ -52,6 +52,46 @@ interface Startup {
   };
 }
 
+// Dummy data for demonstration
+const DUMMY_STARTUPS: Startup[] = [
+  {
+    id: "1",
+    name: "InnovateX AI",
+    description: "Cutting-edge AI solutions for enterprise automation.",
+    website: "https://innovatex.ai",
+    sector: "AI/ML",
+    stage: "Series A",
+    risk: { market: "low", tech: "medium", team: "low" },
+  },
+  {
+    id: "2",
+    name: "MediBridge Health",
+    description: "Connecting patients with specialists through tele-health platform.",
+    website: "https://medibridge.com",
+    sector: "HealthTech",
+    stage: "Seed",
+    risk: { market: "medium", tech: "low", team: "medium" },
+  },
+  {
+    id: "3",
+    name: "GreenVolt Energy",
+    description: "Sustainable energy solutions for urban environments.",
+    website: "https://greenvolt.io",
+    sector: "CleanTech",
+    stage: "Pre-Seed",
+    risk: { market: "high", tech: "high", team: "low" },
+  },
+  {
+    id: "4",
+    name: "FinFlow Analytics",
+    description: "AI-powered financial forecasting and risk assessment for SMEs.",
+    website: "https://finflow.co",
+    sector: "FinTech",
+    stage: "Series B",
+    risk: { market: "low", tech: "low", team: "medium" },
+  },
+];
+
 const RiskBadge = ({
   level,
 }: {
@@ -73,8 +113,8 @@ const RiskBadge = ({
 };
 
 export default function InvestorClient() {
-  const [startups, setStartups] = React.useState<Startup[]>([]);
-  const [loading, setLoading] = React.useState(true);
+  const [startups, setStartups] = React.useState<Startup[]>(DUMMY_STARTUPS); // Initialize with dummy data
+  const [loading, setLoading] = React.useState(false); // Set to false since data is local
   const [error, setError] = React.useState<string | null>(null);
   const [sectorFilter, setSectorFilter] = React.useState("all");
   const [stageFilter, setStageFilter] = React.useState("all");
@@ -84,6 +124,8 @@ export default function InvestorClient() {
   const router = useRouter();
   const { user } = useAuth();
 
+  // Temporarily comment out the useEffect that fetches real data for demo
+  /*
   React.useEffect(() => {
     const fetchStartups = async () => {
       if (!user) return;
@@ -114,6 +156,7 @@ export default function InvestorClient() {
 
     fetchStartups();
   }, [user]);
+  */
 
   const filteredStartups = startups
     .filter((s) => sectorFilter === "all" || s.sector === sectorFilter)
@@ -232,7 +275,8 @@ export default function InvestorClient() {
                                         <DropdownMenuContent align="end">
                                             <DropdownMenuItem asChild><Link href={`/memo/${startup.id}`}><FileText className="mr-2 h-4 w-4"/> View Memo</Link></DropdownMenuItem>
                                             <DropdownMenuItem onClick={() => handleConnect(startup.name)}><MessageSquare className="mr-2 h-4 w-4"/> Connect with Founder</DropdownMenuItem>
-                                            <DropdownMenuItem onClick={handleSchedule}><CalendarPlus className="mr-2 h-4 w-4"/> Schedule 1:1</DropdownMenuItem>
+                                            {/* Corrected DropdownMenuItem with Link and onClick */}
+                                            <DropdownMenuItem onSelect={handleSchedule}> <CalendarPlus className="mr-2 h-4 w-4"/> Schedule 1:1</DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
                                 </CardTitle>

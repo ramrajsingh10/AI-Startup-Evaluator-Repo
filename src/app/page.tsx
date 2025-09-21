@@ -35,13 +35,13 @@ export default function Home() {
                   StartupVerse connects visionary founders with discerning investors, managed by a seamless administrative backend.
                 </p>
                 <div className="space-x-4 mt-6">
-                  {/* Find a Startup now links to /investor */}
+                  {/* Find a Startup now links to /investor (already done) */}
                   <Button asChild size="lg">
                     <Link href="/investor">Find a Startup</Link>
                   </Button>
-                  {/* Submit Your Deck now links to /founder/submit */}
+                  {/* Submit Your Deck now links to /founder */}
                   <Button asChild variant="outline" size="lg">
-                    <Link href="/founder/submit">Submit Your Deck</Link>
+                    <Link href="/founder">Submit Your Deck</Link>
                   </Button>
                 </div>
               </div>
