@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { AppLogo } from "@/components/icons";
+import { AppLogo, HomeIcon, ArrowLeftIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,80 +12,105 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RequestAccessModal } from "@/components/auth/request-access-modal";
 import { Shield, Rocket, Search } from "lucide-react";
-import { auth, googleProvider } from "@/lib/firebase";
-import { signInWithPopup } from "firebase/auth";
-import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth"; // Import useAuth hook
+import { useEffect } from "react";
+import { FirebaseError } from "firebase/app"; // Import FirebaseError
 
 export default function LoginClient() {
-  const [user, setUser] = useState(null);
   const router = useRouter();
   const { toast } = useToast();
+  const { user, loading, role, signInWithGoogle, signInWithEmailAndPassword } = useAuth(); // Use useAuth hook
 
+  // Handle redirection based on user role from useAuth
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        // @ts-ignore
-        setUser(user);
-        // Redirect based on role
-        user.getIdTokenResult().then((idTokenResult) => {
-          if (idTokenResult.claims.role === "admin") {
-            router.push("/admin");
-          } else if (idTokenResult.claims.role === "investor") {
-            router.push("/investor");
-          } else if (idTokenResult.claims.role === "founder") {
-            router.push("/founder");
-          } else {
-            // Handle users with no specific role
-            router.push("/");
-          }
-        });
+    if (!loading && user) {
+      if (role === "admin") {
+        router.push("/admin");
+      } else if (role === "investor") {
+        router.push("/investor");
+      } else if (role === "founder") {
+        router.push("/founder");
       } else {
-        setUser(null);
+        // User is logged in but has no specific role or pending status
+        // This case should ideally not happen if roles are assigned, but as a fallback
+        router.push("/");
       }
-    });
-
-    return () => unsubscribe();
-  }, [router]);
+    } else if (!loading && !user) {
+      // User is not logged in, remain on login page
+    }
+  }, [user, loading, role, router]);
 
   const handleGoogleSignIn = async () => {
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
-      const idToken = await user.getIdToken();
-
-      // Send the token to the backend to set custom claims
-      const response = await fetch("/api/v1/auth/google-signin", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to set custom claims");
-      }
-
-      // Force refresh of the token to get the custom claims
-      const updatedUser = auth.currentUser;
-      if (updatedUser) {
-        await updatedUser.getIdToken(true);
-      }
-
+      await signInWithGoogle();
+      // Redirection is handled by the useEffect above once user state updates
       toast({
         title: "Signed in successfully",
         description: "Redirecting to your dashboard...",
       });
     } catch (error) {
       console.error("Error signing in with Google: ", error);
+      let errorMessage = "Failed to sign in with Google.";
+      if (error instanceof FirebaseError) {
+        if (error.code === "auth/popup-closed-by-user") {
+          errorMessage = "Sign-in popup closed. Please try again.";
+        } else if (error.code === "auth/cancelled-popup-request") {
+          errorMessage = "Sign-in already in progress. Please wait or try again.";
+        } else if (error.code === "auth/unauthorized-domain") {
+          errorMessage = "Unauthorized domain. Please check Firebase settings.";
+        } else {
+          errorMessage = error.message;
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
       toast({
         title: "Sign in failed",
-        description:
-          "There was an error signing in with Google. Please try again.",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEmailPasswordSignIn = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const email = (event.currentTarget.elements.namedItem("email") as HTMLInputElement).value;
+    const password = (event.currentTarget.elements.namedItem("password") as HTMLInputElement).value;
+
+    try {
+      await signInWithEmailAndPassword(email, password);
+      // Redirection is handled by the useEffect above once user state updates
+      toast({
+        title: "Signed in successfully",
+        description: "Redirecting to your dashboard...",
+      });
+    } catch (error) {
+      console.error("Error signing in with email/password: ", error);
+      let errorMessage = "Failed to sign in with email and password.";
+      if (error instanceof FirebaseError) {
+        switch (error.code) {
+          case "auth/user-not-found":
+          case "auth/wrong-password":
+            errorMessage = "Invalid email or password.";
+            break;
+          case "auth/invalid-email":
+            errorMessage = "The email address is not valid.";
+            break;
+          case "auth/user-disabled":
+            errorMessage = "Your account has been disabled.";
+            break;
+          default:
+            errorMessage = error.message;
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      toast({
+        title: "Sign in failed",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -93,6 +118,16 @@ export default function LoginClient() {
 
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
+      <header className="absolute top-0 left-0 p-4 flex gap-2">
+        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+          <ArrowLeftIcon className="h-5 w-5" />
+        </Button>
+        <Button variant="ghost" size="icon" asChild>
+          <Link href="/">
+            <HomeIcon className="h-5 w-5" />
+          </Link>
+        </Button>
+      </header>
       <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto grid w-[350px] gap-6">
           <div className="grid gap-2 text-center">
@@ -107,27 +142,29 @@ export default function LoginClient() {
             </p>
           </div>
           <div className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="m@example.com"
-                required
-              />
-            </div>
-            <div className="grid gap-2">
-              <div className="flex items-center">
-                <Label htmlFor="password">Password</Label>
-                <Link href="#" className="ml-auto inline-block text-sm underline">
-                  Forgot your password?
-                </Link>
+            <form onSubmit={handleEmailPasswordSignIn} className="grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="m@example.com"
+                  required
+                />
               </div>
-              <Input id="password" type="password" required />
-            </div>
-            <Button type="submit" className="w-full" asChild>
-              <Link href="/admin">Sign in</Link>
-            </Button>
+              <div className="grid gap-2">
+                <div className="flex items-center">
+                  <Label htmlFor="password">Password</Label>
+                  <Link href="#" className="ml-auto inline-block text-sm underline">
+                    Forgot your password?
+                  </Link>
+                </div>
+                <Input id="password" type="password" required />
+              </div>
+              <Button type="submit" className="w-full">
+                Sign in
+              </Button>
+            </form>
             <Button
               variant="outline"
               className="w-full"
@@ -137,7 +174,10 @@ export default function LoginClient() {
             </Button>
           </div>
           <div className="mt-4 text-center text-sm">
-            Don&apos;t have an account? <RequestAccessModal />
+            Don&apos;t have an account?{" "}
+            <Link href="/signup" className="underline">
+              Request access
+            </Link>
           </div>
         </div>
       </div>

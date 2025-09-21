@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AppLogo, Briefcase, Rocket, ShieldCheck } from "@/components/icons";
+import { AppLogo, Briefcase, Rocket, ShieldCheck, HomeIcon, ArrowLeftIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/use-auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { FirebaseError } from "firebase/app"; // Import FirebaseError
 
 export default function SignupClient() {
   const [role, setRole] = useState("founder");
@@ -26,8 +27,6 @@ export default function SignupClient() {
 
   const handleGoogleSignUp = async () => {
     try {
-      // You would typically send the selected role to the backend here
-      // after getting the user object from signInWithGoogle
       await signInWithGoogle();
       toast({
         title: "Sign up request sent",
@@ -36,9 +35,15 @@ export default function SignupClient() {
       router.push("/");
     } catch (error) {
       console.error("Error signing up with Google:", error);
+      let errorMessage = "Failed to send sign up request.";
+      if (error instanceof FirebaseError) {
+        errorMessage = error.message;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
       toast({
         title: "Error",
-        description: "Failed to send sign up request.",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -46,8 +51,8 @@ export default function SignupClient() {
 
   const handleEmailSignUp = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const email = (event.currentTarget.elements[1] as HTMLInputElement).value;
-    const password = (event.currentTarget.elements[2] as HTMLInputElement).value;
+    const email = (event.currentTarget.elements.namedItem("email") as HTMLInputElement).value;
+    const password = (event.currentTarget.elements.namedItem("password") as HTMLInputElement).value;
     try {
       await signUp(email, password, role);
       toast({
@@ -57,9 +62,28 @@ export default function SignupClient() {
       router.push("/");
     } catch (error) {
       console.error("Error signing up with email:", error);
+      let errorMessage = "Failed to send sign up request.";
+      if (error instanceof FirebaseError) {
+        switch (error.code) {
+          case "auth/email-already-in-use":
+            errorMessage = "This email is already registered. Try signing in.";
+            break;
+          case "auth/weak-password":
+            errorMessage = "Password is too weak. Please use a stronger password.";
+            break;
+          case "auth/invalid-email":
+            errorMessage = "The email address is not valid.";
+            break;
+          default:
+            errorMessage = error.message;
+        }
+      } else if (error instanceof Error) {
+        // This handles errors re-thrown from the backend fetch call
+        errorMessage = error.message;
+      }
       toast({
         title: "Error",
-        description: "Failed to send sign up request.",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -67,6 +91,16 @@ export default function SignupClient() {
 
   return (
     <div className="flex-1 grid grid-cols-1 lg:grid-cols-2">
+      <header className="absolute top-0 left-0 p-4 flex gap-2">
+        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+          <ArrowLeftIcon className="h-5 w-5" />
+        </Button>
+        <Button variant="ghost" size="icon" asChild>
+          <Link href="/">
+            <HomeIcon className="h-5 w-5" />
+          </Link>
+        </Button>
+      </header>
       <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8">
         <Card className="w-full max-w-md">
           <CardHeader>
