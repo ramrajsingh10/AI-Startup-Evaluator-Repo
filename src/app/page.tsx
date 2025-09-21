@@ -15,7 +15,7 @@ export default function Home() {
             <Link href="/login">Sign In</Link>
           </Button>
           <Button asChild>
-            <Link href="/login">Get Started</Link>
+            <Link href="/signup">Sign Up</Link>
           </Button>
         </nav>
       </header>
@@ -47,7 +47,7 @@ export default function Home() {
                         <p className="text-sm text-muted-foreground mt-1">InnovateX - AI-driven solutions</p>
                         <div className="mt-4 flex items-center gap-4">
                            <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6 text-primary"><path d="m12 14 4-4"/><path d="M16 10H8"/></svg>
+                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6 text-primary"><path d="m12 14 4-4"/><path d="M16 10H8"/></svg>
                            </div>
                            <div>
                               <p className="font-semibold">Next-Gen Analytics</p>
@@ -74,21 +74,21 @@ export default function Home() {
             </div>
             <div className="mx-auto grid items-start gap-8 sm:max-w-4xl sm:grid-cols-2 md:gap-12 lg:max-w-5xl lg:grid-cols-3">
               <div className="grid gap-1 text-center p-6 rounded-lg hover:bg-accent/50 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8 mx-auto text-primary"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8 mx-auto text-primary"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 <h3 className="text-lg font-bold font-headline mt-4">Admins</h3>
                 <p className="text-sm text-muted-foreground">
                   Effortlessly manage access, review submissions, and oversee the entire ecosystem with powerful, intuitive tools.
                 </p>
               </div>
               <div className="grid gap-1 text-center p-6 rounded-lg hover:bg-accent/50 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8 mx-auto text-primary"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8 mx-auto text-primary"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
                 <h3 className="text-lg font-bold font-headline mt-4">Founders</h3>
                 <p className="text-sm text-muted-foreground">
                   Submit your vision, connect with interested investors, and get critical feedback through AI-powered memo generation.
                 </p>
               </div>
               <div className="grid gap-1 text-center p-6 rounded-lg hover:bg-accent/50 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8 mx-auto text-primary"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8 mx-auto text-primary"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                 <h3 className="text-lg font-bold font-headline mt-4">Investors</h3>
                 <p className="text-sm text-muted-foreground">
                   Discover curated startups, analyze AI-generated memos, and connect directly with founders of high-potential ventures.
@@ -97,7 +97,7 @@ export default function Home() {
             </div>
             <div className="flex justify-center flex-col sm:flex-row items-start gap-4">
               <Button asChild size="lg">
-                <Link href="/login">Sign In & Explore</Link>
+                <Link href="/signup">Get Started</Link>
               </Button>
             </div>
           </div>
