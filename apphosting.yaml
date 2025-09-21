@@ -21,3 +21,12 @@ services:
 
 build:
   builder: "22"
+
+# The hosting section ties the frontend and backend together.
+hosting:
+  # This tells App Hosting to use the Next.js frontend as the main web server.
+  main: frontend
+  # The rewrites section tells App Hosting to forward any requests for /api to the backend service.
+  rewrites:
+    - path: /api
+      serviceId: backend
