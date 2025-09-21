@@ -11,6 +11,10 @@ export default function Home() {
           <span className="sr-only">StartupVerse</span>
         </Link>
         <nav className="ml-auto flex gap-4 sm:gap-6">
+          {/* Admin Button Added */}
+          <Button asChild variant="ghost">
+            <Link href="/admin">Admin</Link>
+          </Button>
           <Button asChild variant="ghost">
             <Link href="/login">Sign In</Link>
           </Button>
@@ -31,11 +35,13 @@ export default function Home() {
                   StartupVerse connects visionary founders with discerning investors, managed by a seamless administrative backend.
                 </p>
                 <div className="space-x-4 mt-6">
+                  {/* Find a Startup now links to /investor */}
                   <Button asChild size="lg">
-                    <Link href="/login">Find a Startup</Link>
+                    <Link href="/investor">Find a Startup</Link>
                   </Button>
+                  {/* Submit Your Deck now links to /founder/submit */}
                   <Button asChild variant="outline" size="lg">
-                    <Link href="/login">Submit Your Deck</Link>
+                    <Link href="/founder/submit">Submit Your Deck</Link>
                   </Button>
                 </div>
               </div>

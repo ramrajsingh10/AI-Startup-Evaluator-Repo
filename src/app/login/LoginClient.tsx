@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { AppLogo, HomeIcon, ArrowLeftIcon, ShieldCheck, Rocket, Briefcase } from "@/components/icons"; // Import from local icons
+import { AppLogo, HomeIcon, ArrowLeftIcon, ShieldCheck, Rocket, Briefcase } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,22 +12,20 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-// Removed RequestAccessModal import as it will no longer be used directly here
-// Removed lucide-react imports
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/use-auth"; // Import useAuth hook
+import { useAuth } from "@/hooks/use-auth";
 import { useEffect } from "react";
-import { FirebaseError } from "firebase/app"; // Import FirebaseError
+import { FirebaseError } from "firebase/app";
 
 export default function LoginClient() {
   const router = useRouter();
   const { toast } = useToast();
-  const { user, loading, role, signInWithGoogle, signInWithEmailAndPassword } = useAuth(); // Use useAuth hook
+  const { user, loading, role, signInWithGoogle, signInWithEmailAndPassword } = useAuth();
 
-  // Handle redirection based on user role from useAuth
   useEffect(() => {
     if (!loading && user) {
+      // TEMPORARY: For demo purposes, we will bypass the active status check
       if (role === "admin") {
         router.push("/admin");
       } else if (role === "investor") {
@@ -35,17 +33,15 @@ export default function LoginClient() {
       } else if (role === "founder") {
         router.push("/founder");
       } else {
-        // User is logged in but has no specific role or pending status
-        // This case should ideally not happen if roles are assigned, but as a fallback
-        // This might be hit if a user logs in but their Firestore doc doesn't exist or has no role/status
-        console.log("User logged in but no specific role found or status not active.");
-        toast({
-          title: "Access Pending",
-          description: "Your account is not active. Please wait for admin approval.",
-          variant: "destructive",
-        });
-        // Optionally, sign out the user if their status isn't active to prevent partial login state
-        // auth.signOut(); 
+        // TEMPORARY: If no specific role, or role not recognized, redirect to a default for demo
+        console.log("User logged in, redirecting to home for demo purposes.");
+        router.push("/");
+        // The 'Access Pending' toast is commented out for demo purposes.
+        // toast({
+        //   title: "Access Pending",
+        //   description: "Your account is not active. Please wait for admin approval.",
+        //   variant: "destructive",
+        // });
       }
     } else if (!loading && !user) {
       // User is not logged in, remain on login page
@@ -55,7 +51,6 @@ export default function LoginClient() {
   const handleGoogleSignIn = async () => {
     try {
       await signInWithGoogle();
-      // Redirection is handled by the useEffect above once user state updates
       toast({
         title: "Signed in successfully",
         description: "Redirecting to your dashboard...",
@@ -74,7 +69,6 @@ export default function LoginClient() {
           errorMessage = error.message;
         }
       } else if (error instanceof Error) {
-        // This will catch errors re-thrown from the backend fetch, including 403 messages
         errorMessage = error.message;
       }
       toast({
@@ -92,7 +86,6 @@ export default function LoginClient() {
 
     try {
       await signInWithEmailAndPassword(email, password);
-      // Redirection is handled by the useEffect above once user state updates
       toast({
         title: "Signed in successfully",
         description: "Redirecting to your dashboard...",
@@ -196,7 +189,7 @@ export default function LoginClient() {
           <Card className="bg-background/60">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <ShieldCheck className="text-primary" /> Admin {/* Replaced Shield */}
+                <ShieldCheck className="text-primary" /> Admin
               </CardTitle>
               <CardDescription>
                 Manage the ecosystem. Control user access, review startup
@@ -207,7 +200,7 @@ export default function LoginClient() {
           <Card className="bg-background/60">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Briefcase className="text-primary" /> Investor {/* Replaced Search */}
+                <Briefcase className="text-primary" /> Investor
               </CardTitle>
               <CardDescription>
                 Discover opportunities. Browse curated startups, analyze
@@ -218,7 +211,7 @@ export default function LoginClient() {
           <Card className="bg-background/60">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Rocket className="text-primary" /> Founder {/* Replaced Rocket */}
+                <Rocket className="text-primary" /> Founder
               </CardTitle>
               <CardDescription>
                 Launch your vision. Submit your startup, schedule meetings with
