@@ -16,7 +16,7 @@ db = firestore.client()
 async def signup(email: str = Body(...), password: str = Body(...), role: str = Body(...)):
     """
     Handles new user sign-up. Creates a user in Firebase Auth and a corresponding
-    document in Firestore with a 'pending' status.
+    document in Firestore with an 'active' status (temporarily for demo).
     """
     if role not in ["founder", "investor"]:
         raise HTTPException(status_code=400, detail="Invalid role specified.")
@@ -26,12 +26,12 @@ async def signup(email: str = Body(...), password: str = Body(...), role: str = 
         new_user = auth.create_user(email=email, password=password)
         uid = new_user.uid
 
-        # Create user document in Firestore with 'pending' status
+        # Create user document in Firestore with 'active' status (TEMPORARY)
         users_ref = db.collection('users')
         new_user_data = {
             "email": email,
             "role": role,
-            "status": "pending",  # New users start as pending
+            "status": "active",  # TEMPORARY: New users start as active for demo
             "uid": uid,
             "createdAt": firestore.SERVER_TIMESTAMP
         }
@@ -40,7 +40,7 @@ async def signup(email: str = Body(...), password: str = Body(...), role: str = 
         # Set a custom claim to identify the user's role
         auth.set_custom_user_claims(uid, {"role": role})
 
-        return {"status": "success", "message": "Signup request successful. Please wait for admin approval."}
+        return {"status": "success", "message": "Signup successful. You can now log in."}
 
     except auth.EmailAlreadyExistsError:
         raise HTTPException(status_code=409, detail="A user with this email already exists.")
@@ -53,7 +53,7 @@ async def google_signin(credentials: HTTPAuthorizationCredentials = Depends(secu
     """
     Handles Google sign-in. It verifies the Firebase ID token, checks for an existing
     user record in Firestore to determine their role and status, and sets custom claims.
-    If the user is new, it creates a 'pending' record for them.
+    If the user is new, it creates an 'active' record for them (temporarily for demo).
     """
     token = credentials.credentials
     try:
@@ -70,11 +70,11 @@ async def google_signin(credentials: HTTPAuthorizationCredentials = Depends(secu
         if user_doc.exists:
             user_data = user_doc.to_dict()
             role = user_data.get("role", "founder")
-            status = user_data.get("status", "pending")
+            status = user_data.get("status", "active") # TEMPORARY: Default to active for existing users
         else:
-            # If user is new, create a document for them with 'pending' status
+            # If user is new, create a document for them with 'active' status (TEMPORARY)
             role = "founder"  # Default role for new Google sign-ups
-            status = "pending"
+            status = "active"
             new_user_data = {
                 "email": email,
                 "role": role,
@@ -84,8 +84,9 @@ async def google_signin(credentials: HTTPAuthorizationCredentials = Depends(secu
             }
             users_ref.document(uid).set(new_user_data)
 
-        if status != "active":
-            raise HTTPException(status_code=403, detail="Account is not active. Please wait for admin approval.")
+        # TEMPORARILY COMMENTED OUT FOR DEMO:
+        # if status != "active":
+        #     raise HTTPException(status_code=403, detail="Account is not active. Please wait for admin approval.")
 
         # Set custom claims on the user's auth token
         auth.set_custom_user_claims(uid, {"role": role})
