@@ -19,10 +19,5 @@
         }
       }
     ]
-  },
-  "apphosting": [
-    {
-      "backendId": "app-hosting-backend"
-    }
-  ]
+  }
 }
