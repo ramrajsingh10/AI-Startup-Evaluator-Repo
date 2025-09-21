@@ -15,10 +15,10 @@ services:
     # Environment variables needed for the build and runtime of the frontend.
     env:
       - variable: NEXT_PUBLIC_FIREBASE_API_KEY
-        value: "AIzaSyCbM4IIMEnnhK24eymef0aGFsbF6oCoS00"
+        value: "AIzaSyDYssyhTe4mi4LqTLsRan5ynea2We9h7Oo"
         availability: [BUILD, RUNTIME]
       - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
-        value: "app-hosting-backend--ai-startup-evaluator-472309.us-central1.hosted.app"
+        value: "ai-startup-evaluator-472309.firebaseapp.com"
         availability: [BUILD, RUNTIME]
       - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
         value: "ai-startup-evaluator-472309"
